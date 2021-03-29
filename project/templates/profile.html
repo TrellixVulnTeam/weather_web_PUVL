@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">
+     Hello, {{ name }}!
+      <br> What do you want to do?
+    </h3>
+    <div class="box">
+        {% include "notification.html" %}
+        {% block notification %} {% endblock %}
+        <form method="POST" action="/items/new">
+            <button class="button is-info is-medium is-outlined is-fullwidth">Create item</button>
+        </form>
+
+        <form method="POST" action="/items">
+            <button class="button is-info is-medium is-outlined is-fullwidth">Show my items</button>
+        </form>
+
+        <form method="POST" action="/inbox_items">
+            <button class="button is-info is-medium is-outlined is-fullwidth">Inbox items</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

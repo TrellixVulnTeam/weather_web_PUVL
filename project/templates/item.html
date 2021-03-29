@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="column is-4 is-offset-4 ">
+    <h2 class="title">Items</h2>
+      <div class="box">
+        <article class="media">
+        <div class="media-content">
+            <div class="content">
+              <strong>{{ item['name'] }}</strong>
+              <br>
+              {{ item['text'] }}
+            </div>
+            <nav class="level is-mobile">
+              <div class="level-left">
+                <a class="level-item" aria-label="reply">
+                  <span class="icon is-small">
+                    <i class="fas fa-reply" aria-hidden="true"></i>
+                  </span>
+                </a>
+              </div>
+            </nav>
+        </div>
+<!--            <button class="delete"></button>-->
+              <button class="button is-danger is-outlined">
+                <span>Delete</span>
+                <span class="icon is-small">
+                  <i class="fas fa-times"></i>
+                </span>
+              </button>
+        </article>
+      </div>
+</div>
+{% endblock %}

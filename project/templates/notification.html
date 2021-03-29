@@ -1,0 +1,27 @@
+<!--notification.html-->
+
+{% block notification %}
+    {% with messages = get_flashed_messages(category_filter=["success"]) %}
+    {% if messages %}
+        <div class="notification is-success">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    {% with messages = get_flashed_messages(category_filter=["warning"]) %}
+    {% if messages %}
+        <div class="notification is-warning">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    {% with messages = get_flashed_messages(category_filter=["error"]) %}
+    {% if messages %}
+        <div class="notification is-danger">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
+{% endblock %}
