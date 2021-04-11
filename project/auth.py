@@ -20,16 +20,16 @@ def login_post():
     name = request.form.get('name')
     password = request.form.get('password')
     remember = request.form.get('remember_me')
-    name_in_base = User.query.filter_by(name=name).first()
-    password_in_base = User.query.filter_by(password=password).first()
-    if not name_in_base or not password_in_base:
+    user_name = User.query.filter_by(name=name).first()
+    user_password = User.query.filter_by(password=password).first()
+    if not user_name or not user_password:
         flash('Please check your name/password details and try again', 'warning')
         return redirect(url_for('auth.login'))
     if remember is not None:
-        login_user(name_in_base, remember=True)
+        login_user(user_name, remember=True)
     else:
-        login_user(name_in_base, remember=False)
-    name_in_base.token = User.get_token(self=name_in_base)
+        login_user(user_name, remember=False)
+    user_name.token = User.get_token(self=user_name)
     db.session.commit()
     return redirect(url_for('main.profile'))
 

@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+import pathlib
+from pathlib import Path
 
 
 db = SQLAlchemy()
@@ -10,7 +12,9 @@ def create_app():
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = 'Th1s1ss3cr3t'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/janki/Desktop/Python/weather_web/project/database.db'
+    dir_path = pathlib.Path.cwd()
+    path = Path(dir_path, 'project', 'database.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
     db.init_app(app)

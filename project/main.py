@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, url_for, flash, request
 from flask_login import current_user, login_required
 from werkzeug.utils import redirect
 
-from .models import Item
+from .models import Item, User
 from . import db
 
 main = Blueprint('main', __name__)
@@ -47,8 +47,6 @@ def delete_item(id):
 @main.route('/inbox_items')
 @login_required
 def inbox_items():
-    # item = Item.query.filter_by(id=id).first()
-    # db.session.commit()
     return render_template('inbox_items.html')
 
 
@@ -56,12 +54,13 @@ def inbox_items():
 @login_required
 def items():
     user_token = current_user.token
+    users = User.query.filter_by().all()
     is_none = Item.query.filter_by(token=user_token).first()
     items_list = Item.query.filter_by(token=user_token).all()
     if is_none is None:
         flash('Items list is empty', 'warning')
         return redirect(url_for('main.profile'))
-    return render_template('items.html', items_list=items_list)
+    return render_template('items.html', items_list=items_list, users=users)
 
 
 @main.route('/items', methods=['POST'])
@@ -91,3 +90,11 @@ def items_new_post():
     else:
         flash('The name is empty. Please enter it', 'error')
         return redirect(url_for('main.items_new'))
+
+
+@main.route('/send')
+@main.route('/send', methods=['POST'])
+@login_required
+def send_item():
+    flash('Item sent to %s', 'success' % current_user)
+    return redirect(url_for('main.items'))

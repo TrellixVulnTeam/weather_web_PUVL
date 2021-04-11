@@ -1,8 +1,10 @@
 import base64
+from datetime import datetime, timedelta
 import os
+import re
 
 from . import db
-from flask_login import UserMixin, current_user
+from flask_login import UserMixin
 
 
 class User(db.Model, UserMixin):
@@ -22,15 +24,24 @@ class User(db.Model, UserMixin):
         }
         return data
 
-    def from_dict(self, data, new_user=False):
+    def from_dict(self, data):
         for field in ['name', 'password', 'token']:
             if field in data:
                 setattr(self, field, data[field])
 
     def get_token(self):
         user_token = self.token
-        if user_token is None:
+        now = datetime.now()
+        if self.token is None or (self.token_expiration < now + timedelta(seconds=300)):
+            items_token = Item.query.filter_by(token=self.token).all()
+            for i in items_token:
+                print(i.token)
             self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
+            self.token_expiration = now + timedelta(seconds=3600)
+            while len(re.findall('[/]+', self.token)) > 0:
+                self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
+            for item in items_token:
+                item.token = self.token
             db.session.add(self)
             db.session.commit()
             return self.token
