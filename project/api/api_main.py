@@ -1,8 +1,8 @@
+import base64
 from flask import jsonify, Blueprint, request
 from project import db
 from project.api.api_errors import bad_request, good_request
 from project.models import Item, User
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 api_main = Blueprint('api_main', __name__)
 
@@ -29,7 +29,6 @@ def create_item():
     token = data['token']
     name = data['name']
     text = data['text']
-
     user_items = Item.query.filter_by(token=token).all()
     for item in user_items:
         if str(item.name) == name:
@@ -78,17 +77,47 @@ def delete_item(id):
 @api_main.route('/api/send', methods=['POST'])
 def send_item():
     data = request.get_json() or {}
-    id = int(data['id'])
-    name = data['name']
-    token_sent = data['token']
-    user = User.query.filter_by(name=name).first()
-    token_reciev = user.token
-    s = Serializer('WEBSITE_SECRET_KEY', 60 * 30)  # 60 secs by 5 mins
-    link = s.dumps({'id': id, 'token_sent': token_sent, 'token_reciev': token_reciev}).decode('utf-8')  # encode
-    return jsonify(link)
+    if 'id' not in data or 'name' not in data or 'token' not in data:
+        return bad_request("Must include item's id, user's login and token fields")
+
+    item_id = int(data['id'])
+    user_name = data['name']
+    token_send = data['token']
+    user = User.query.filter_by(name=user_name).first()
+    if user is None:
+        return bad_request("User '%s' does not exist" % user_name)
+
+    user_items = Item.query.filter_by(token=token_send).all()
+    for item in user_items:
+        if item_id == item.id:
+            data = str(item_id) + ':' + user_name + ':' + token_send
+            encoded = (base64.b64encode(data.encode('ascii')))
+            encoded_link = encoded.decode('ascii')
+            return 'http://localhost:5000/api/get/%s' % encoded_link
+    return bad_request('Link is incorrect')
 
 
-@api_main.route('/get')
+@api_main.route('/api/get', methods=['GET'])
 def get_item():
     data = request.get_json() or {}
-    pass
+    if 'link' not in data or 'token' not in data:
+        return bad_request("Must include item's link and token fields")
+
+    encoded_link = data['link'][30:]
+    received_token = data['token']
+    decoded = base64.b64decode(encoded_link.encode('ascii'))
+    decoded_link = decoded.decode('ascii')
+
+    item_id = decoded_link[:decoded_link.find(':')]
+    name = decoded_link[decoded_link.find(':') + 1:decoded_link.rfind(':')]
+    sented_token = decoded_link[decoded_link.rfind(':') + 1:]
+
+    user = User.query.filter_by(name=name).first()
+    if user.token == received_token:
+        item = Item.query.filter_by(id=item_id).first()
+        if item.token == sented_token:
+            item.token = received_token
+            db.session.add(item)
+            db.session.commit()
+            return good_request('Item received successfully')
+    return bad_request('Link expired')
