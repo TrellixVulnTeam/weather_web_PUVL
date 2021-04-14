@@ -37,11 +37,14 @@ def create_item():
     new_item = Item(name=name, text=text, token=token)
     db.session.add(new_item)
     db.session.commit()
-    responce = Item.query.filter_by(name=name).first()
-    return jsonify({'message': 'Item successfully created'},
-                   {'id': responce.id,
-                    'name': responce.name,
-                    'text': responce.text})
+    responce = Item.query.filter_by(token=token).all()
+    for item in responce:
+        if item.name == name:
+            return jsonify({'message': 'Item successfully created'},
+                           {'id': item.id,
+                            'name': item.name,
+                            'text': item.text})
+    return
 
 
 @api_main.route('/api/items/<token>', methods=['GET'])
@@ -97,27 +100,28 @@ def send_item():
     return bad_request('Link is incorrect')
 
 
-@api_main.route('/api/get', methods=['GET'])
-def get_item():
+@api_main.route('/api/get/<link>', methods=['GET'])
+def get_item(link):
     data = request.get_json() or {}
-    if 'link' not in data or 'token' not in data:
+    if 'token' not in data:
         return bad_request("Must include item's link and token fields")
 
-    encoded_link = data['link'][30:]
-    received_token = data['token']
-    decoded = base64.b64decode(encoded_link.encode('ascii'))
-    decoded_link = decoded.decode('ascii')
+    try:
+        received_token = data['token']
+        decoded = base64.b64decode(link.encode('ascii'))
+        decoded_link = decoded.decode('ascii')
 
-    item_id = decoded_link[:decoded_link.find(':')]
-    name = decoded_link[decoded_link.find(':') + 1:decoded_link.rfind(':')]
-    sented_token = decoded_link[decoded_link.rfind(':') + 1:]
-
-    user = User.query.filter_by(name=name).first()
-    if user.token == received_token:
-        item = Item.query.filter_by(id=item_id).first()
-        if item.token == sented_token:
-            item.token = received_token
-            db.session.add(item)
-            db.session.commit()
-            return good_request('Item received successfully')
-    return bad_request('Link expired')
+        item_id = decoded_link[:decoded_link.find(':')]
+        name = decoded_link[decoded_link.find(':') + 1:decoded_link.rfind(':')]
+        sented_token = decoded_link[decoded_link.rfind(':') + 1:]
+        user = User.query.filter_by(name=name).first()
+        if user.token == received_token:
+            item = Item.query.filter_by(id=item_id).first()
+            if item.token == sented_token:
+                item.token = received_token
+                db.session.add(item)
+                db.session.commit()
+                return good_request('Item received successfully')
+        return bad_request('Link expired')
+    except Exception:
+        return bad_request('Link incorrect')
