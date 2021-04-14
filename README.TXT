@@ -10,4 +10,4 @@ http POST http://localhost:5000/api/items/new token=<TOKEN> name=<NAME> text=<TE
 http GET http://localhost:5000/api/items/<TOKEN>                                        # Show user's items
 http DELETE http://localhost:5000/api/items/<ID> token=<TOKEN>                          # Delete user's item
 http POST http://localhost:5000/api/send id=<ID> name=<NAME> token=<TOKEN>              # Send item to another user (ID- item's id; NAME- who get; TOKEN- who gives)
-http GET http://localhost:5000/api/get link=<LINK> token=<TOKEN>                        # Confirm recievied item (LINK- link from 'api/send'; TOKEN- who get) 
+http GET http://localhost:5000/api/get/<LINK> token=<TOKEN>                             # Confirm recievied item (LINK- link from 'api/send'; TOKEN- who get) 
